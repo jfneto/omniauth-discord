@@ -71,7 +71,6 @@ module OmniAuth
       end
 
       def authorize_params
-        binding.pry
         super.tap do |params|
           options[:authorize_options].each do |option|
             params[option] = request.params[option.to_s] if request.params[option.to_s]
