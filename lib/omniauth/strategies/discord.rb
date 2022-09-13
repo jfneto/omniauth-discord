@@ -27,14 +27,16 @@ module OmniAuth
             id: raw_guild_info&.dig('id'),
             name: raw_guild_info&.dig('name'),
             roles: raw_guild_info&.dig('roles')
-          }
+          },
+          guilds: user_guilds
         }
       end
 
       extra do
         {
           'raw_info' => raw_info,
-          'raw_guild_info' => raw_guild_info
+          'raw_guild_info' => raw_guild_info,
+          'raw_user_guilds' => raw_user_guilds
         }
       end
 
@@ -43,8 +45,24 @@ module OmniAuth
       end
 
       def raw_guild_info
-        puts access_token.params&.dig('guild')
         @raw_guild_info ||= access_token.params&.dig('guild')
+      end
+
+      def raw_user_guilds
+        @raw_user_guilds ||= access_token.get('users/@me/guilds').parsed
+      end
+
+      def user_guilds
+        raw_user_guilds.map do |guild|
+          {
+            id: guild['id'],
+            name: guild['name'],
+            icon: guild['icon'],
+            owner: guild['owner'],
+            permissions: guild['permissions'],
+            permissions_new: guild['permissions_new']
+          }
+        end
       end
 
       def callback_url
@@ -53,6 +71,7 @@ module OmniAuth
       end
 
       def authorize_params
+        binding.pry
         super.tap do |params|
           options[:authorize_options].each do |option|
             params[option] = request.params[option.to_s] if request.params[option.to_s]
